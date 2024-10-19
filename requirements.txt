@@ -1,0 +1,6 @@
+pyarrow
+arch
+scipy
+pandas
+plotly
+matplotlib
