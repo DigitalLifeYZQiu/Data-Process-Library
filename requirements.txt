@@ -4,3 +4,4 @@ scipy
 pandas
 plotly
 matplotlib
+sphinx_rtd_theme
