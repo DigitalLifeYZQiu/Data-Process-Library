@@ -1,1 +1,9 @@
 sphinx-rtd-theme
+pyarrow
+numpy
+arch
+scipy
+pandas
+plotly
+matplotlib
+sphinx_rtd_theme
