@@ -36,7 +36,7 @@ class DataframeAnalysis():
     
     def getAverageColumn(self,start_col=None, end_col=None):
         '''
-        Get the average column of target dataset from the starting column to the ending column.
+        Get the average of each column in the target dataset from the starting column to the ending column.
         :param start_col: The starting column.
         :param end_col: The ending column.
         :return: The average value of each column.
@@ -56,7 +56,7 @@ class DataframeAnalysis():
     
     def getVarianceColumn(self, start_col=None, end_col=None):
         '''
-        Get the variance column of target dataset from the starting column to the ending column.
+        Get the variance of each column in the target dataset from the starting column to the ending column.
         :param start_col: The starting column.
         :param end_col: The ending column.
         :return: The variance value of each column.
@@ -75,7 +75,7 @@ class DataframeAnalysis():
     
     def getStdColumn(self, start_col=None, end_col=None):
         '''
-        Get the standard deviation column of target dataset from the starting column to the ending column.
+        Get the standard deviation of each column in the target dataset from the starting column to the ending column.
         :param start_col: The starting column.
         :param end_col: The ending column.
         :return: The standard deviation value of each column.
@@ -93,6 +93,12 @@ class DataframeAnalysis():
         return std_df
     
     def getMedianColumn(self, start_col=None, end_col=None):
+        '''
+        Get the median of each column in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: THe ending column.
+        :return: The median of each column.
+        '''
         # 获取数据每一列的中位数
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -106,6 +112,13 @@ class DataframeAnalysis():
         return median_df
     
     def getQuantileColumn(self,percent=[1/4,2/4,3/4], start_col=None, end_col=None):
+        '''
+        Get the quantile of each column in the target dataset from the starting column to the ending column.
+        :param percent: The percentile of each column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The quantile of each column.
+        '''
         # 获取数据每一列的分位数：定义percent值以设置分为数
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -116,6 +129,12 @@ class DataframeAnalysis():
         return quantile
     
     def getMaxColumn(self, start_col=None, end_col=None):
+        '''
+        Get the max of each column in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The max of each column.
+        '''
         # 获取数据每一列的最大值
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -129,6 +148,12 @@ class DataframeAnalysis():
         return maxval_df
     
     def getMinColumn(self,start_col=None, end_col=None):
+        '''
+        Get the min of each column in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The min of each column.
+        '''
         # 获取数据每一列的最小值
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -142,8 +167,14 @@ class DataframeAnalysis():
         return minval_df
     
     #* 相关性
-    #todo: 自相关性与互相惯性指定序列计算接口
     def getCorr(self, method='pearson', start_col=None, end_col=None):
+        '''
+        Get the cross correlation of each column in the target dataset from the starting column to the ending column.
+        :param method: The calculation method of cross correlation ('pearson' | 'kendall' | 'spearman')
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The cross correlation of each column.
+        '''
         # 获取所有序列两两之间的互相关性：定义method以指定计算相关性标准（'pearson' | 'kendall' | 'spearman'）
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -153,6 +184,13 @@ class DataframeAnalysis():
         return df.corr(method)
     
     def getSelfCorr(self,lag=1, start_col=None, end_col=None):
+        '''
+        Get the self correlation of each column in the target dataset from the starting column to the ending column.
+        :param lag: The lagging length used to calculate self correlation.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The self correlation of each column.
+        '''
         # 获取所有序列自相关系数：定义lag以指定计算自相关的滞后期数（时间间隔）
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -169,6 +207,12 @@ class DataframeAnalysis():
 
     #* 平稳性
     def getADF(self, start_col=None, end_col=None):
+        '''
+        Get the ADF of each column in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The ADF result of each column.
+        '''
         # 获取所有序列的ADF平稳性测试结果
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -182,6 +226,12 @@ class DataframeAnalysis():
         return ADFresult
     
     def getPhillipsPerron(self, start_col=None, end_col=None):
+        '''
+        Get the phillips perron result of each column in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The phillips perron result of each column.
+        '''
         # 获取所有序列的Phillips-Perron平稳性测试结果
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -195,6 +245,12 @@ class DataframeAnalysis():
         return PhillipsPerronresult
     
     def getDFGLS(self, start_col=None, end_col=None):
+        '''
+        Get the DF-GLS result of each column in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The DF-GLS result of each column.
+        '''
         # 获取所有序列的DF-GLS平稳性测试结果
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -208,6 +264,12 @@ class DataframeAnalysis():
         return DFGLSresult
 
     def getKPSS(self, start_col=None, end_col=None):
+        '''
+        Get the KPSS result of each column in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The KPSS result of each column.
+        '''
         # 获取所有序列的KPSS平稳性测试结果
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -221,6 +283,12 @@ class DataframeAnalysis():
         return KPSSresult
     
     def getZivotAndrews(self, start_col=None, end_col=None):
+        '''
+        Get the Zivot-Andrews result of each column in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The Zivot-Andrews result of each column.
+        '''
         # 获取所有序列的Zivot-Andrew平稳性测试结果
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -234,6 +302,12 @@ class DataframeAnalysis():
         return ZivotAndrewsresult
     
     def getVarianceRatio(self, start_col=None, end_col=None):
+        '''
+        Get the Variance Ratio result of each column in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The Variance Ratio result of each column.
+        '''
         # 获取所有序列的Variance Ratio平稳性测试结果
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -247,8 +321,13 @@ class DataframeAnalysis():
         return VarianceRatioresult
     
     #* 周期性分析
-    #todo 具体实现仍然需要讨论，先了解一下现有主流方法
     def getFFTtopk(self,col,top_k_seasons=3):
+        '''
+        Get the Fast Fourier Transform result of a certain column in the target dataset.
+        :param col: The input column.
+        :param top_k_seasons: The number of top k seasons.
+        :return: The Fast Fourier Transform result of a certain column in the target dataset.
+        '''
         # 获得k个最主要的周期
         if col not in self.df_raw.columns:
             print(f"column {col} not found")
@@ -267,6 +346,12 @@ class DataframeAnalysis():
 
     #* 缺失值分析
     def getNanIndex(self,start_col=None, end_col=None):
+        '''
+        Get the index containing Nan in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :return: The index containing Nan in the target dataset from the starting column to the ending column.
+        '''
         # 获得包含缺失值的index条目
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -276,6 +361,13 @@ class DataframeAnalysis():
         return data_nan_time
     
     def getInterpolate(self, start_col=None, end_col=None, **kwargs):
+        '''
+        Get the interpolate result of each column in the target dataset from the starting column to the ending column.
+        :param start_col: The starting column.
+        :param end_col: The ending column.
+        :param kwargs: The arguments of interpolate.
+        :return: The interpolate result of each column in the target dataset from the starting column to the ending column.
+        '''
         # 插值填补函数(通过**kwargs传入interpolate函数的参数)
         if start_col==None:
             start_col = self.df_raw.columns[0]
