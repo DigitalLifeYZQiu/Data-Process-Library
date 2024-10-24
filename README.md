@@ -1,6 +1,6 @@
 # Data Processing Library (DaPLib)
 
-DaPLib is an composite data processing function library for quick industrial data analyze and visualize based on `Pandas`.
+DaPLib is a composite data processing function library for quick industrial data analyze and visualize based on `Pandas`.
 
 ## Usage
 
