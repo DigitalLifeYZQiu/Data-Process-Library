@@ -4,4 +4,4 @@ Analysis
 .. toctree::
    :maxdepth: 4
 
-   Analysis
+   Analysis for data understanding <Analysis>
