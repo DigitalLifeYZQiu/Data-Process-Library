@@ -31,6 +31,12 @@ class DataframeAnalysis():
     def getShape(self):
         """
         Get the shape of target dataset.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
         :return: The shape of target dataset.
         """
         # 获取数据形状：（序列长度，变量数）
@@ -38,134 +44,14 @@ class DataframeAnalysis():
 
     def getAverageColumn(self, start_col=None, end_col=None):
         """
-        本地算法快速训练接口。
+        Get the average of each column in the target dataset from the starting column to the ending column.
 
-        仅需提供本地资源和训练相关的信息，
-        即可在Anylearn后端引擎启动自定义算法/数据集的训练：
-
-        - 算法路径（文件目录或压缩包）
-        - 数据集路径（文件目录或压缩包）
-        - 训练启动命令
-        - 训练输出路径
-        - 训练超参数
-
-        本接口封装了Anylearn从零启动训练的一系列流程：
-
-        - 算法注册、上传
-        - 数据集注册、上传
-        - 训练项目创建
-        - 训练任务创建
-
-        本地资源初次在Anylearn注册和上传时，
-        会在本地记录资源的校验信息。
-        下一次调用快速训练或快速验证接口时，
-        如果提供了相同的资源信息，
-        则不再重复注册和上传资源，
-        自动复用远程资源。
-
-        如有需要，也可向本接口传入已在Anylearn远程注册的算法或数据集的ID，
-        省略资源创建的过程。
-
-        Parameters
-        ----------
-        algorithm_id : :obj:`str`, optional
-            已在Anylearn远程注册的算法ID。
-        algorithm_cloud_name: :obj:`str`, optional
-            指定的算法在Anylearn云环境中的名称。
-            同一用户的自定义算法的名称不可重复。
-            如有重复，则复用已存在的同名算法，
-            算法文件将被覆盖并提升版本。
-            原有版本仍可追溯。
-        algorithm_local_dir : :obj:`str`, optional
-            本地算法目录路径。
-        algorithm_git_ref : :obj:`str`, optional
-            算法Gitea代码仓库的版本号（可以是commit号、分支名、tag名）。
-            使用本地算法时，如未提供此参数，则取本地算法当前分支名。
-        algorithm_force_update : :obj:`bool`, optional
-            在同步算法的过程中是否强制更新算法，如为True，Anylearn会对未提交的本地代码变更进行自动提交。默认为False。
-        algorithm_entrypoint : :obj:`str`, optional
-            启动训练的入口命令。
-        algorithm_output : :obj:`str`, optional
-            训练输出模型的相对路径（相对于算法目录）。
-        algorithm_hyperparams : :obj:`dict`, optional
-            训练超参数字典。
-            超参数将作为训练启动命令的参数传入算法。
-            超参数字典中的键应为长参数名，如 :obj:`--param` ，并省略 :obj:`--` 部分传入。
-            如需要标识类参数（flag），可将参数的值设为空字符串，如 :obj:`{'my-flag': ''}` ，等价于 :obj:`--my-flag` 传入训练命令。
-            默认为空字典。
-        algorithm_hyperparams_prefix : :obj:`str`, optional
-            训练超参数键前标识，可支持hydra特殊命令行传参格式的诸如 :obj:`+key1` 、 :obj:`++key2` 、 空前置 :obj:`key3` 等需求，
-            默认为 :obj:`--` 。
-        algorithm_hyperparams_delimeter :obj:`str`, optional
-            训练超参数键值间的分隔符，默认为空格 :obj:` ` 。
-        algorithm_envs : :obj:`dict`, optional
-            训练环境变量字典。
-        dataset_hyperparam_name : :obj:`str`, optional
-            启动训练时，数据集路径作为启动命令参数传入算法的参数名。
-            需指定长参数名，如 :obj:`--data` ，并省略 :obj:`--` 部分传入。
-            数据集路径由Anylearn后端引擎管理。
-            默认为 :obj:`dataset` 。
-        dataset_id : :obj:`str`, optional
-            已在Anylearn远程注册的数据集ID。
-        dataset_cloud_names : :obj:`List[str]`, optional
-            训练任务需使用的Anylearn云环境中的数据集的名称
-        model_hyperparam_name : :obj:`str`, optional
-            启动训练时，模型路径作为启动命令参数传入算法的参数名。
-            需指定长参数名，如 :obj:`--model` ，并省略 :obj:`--` 部分传入。
-            模型路径由Anylearn后端引擎管理。
-            默认为 :obj:`model` 。
-        model_id : :obj:`str`, optional
-            已在Anylearn远程注册/转存的模型ID。
-        model_cloud_names : :obj:`List[str]`, optional
-            训练任务需使用的Anylearn云环境中的模型的名称
-        pretrain_hyperparam_name: :obj:`str`, optional
-            启动训练时，前置训练结果（间接抽象为“预训练”，即"pretrain"）路径作为启动命令参数传入算法的参数名。
-            需指定长参数名，如 :obj:`--pretrain` ，并省略 :obj:`--` 部分传入。
-            预训练结果路径由Anylearn后端引擎管理。
-            默认为 :obj:`pretrain` 。
-        pretrain_task_id: :obj:`List[str]` | :obj:`str`, optional
-            在Anylearn进行过的训练的ID，一般为前缀TRAI的32位字符串。
-            Anylearn会对指定的训练进行结果抽取并挂载到新一次的训练中。
-        project_id : :obj:`str`, optional
-            已在Anylearn远程创建的训练项目ID。
-        tags : :obj:`list`, optional
-            训练任务标签列表
-        task_name : :obj:`str`, optional
-            训练任务名称。
-            若值为非空，则由SDK自动生成8位随机字符串作为训练任务名称。
-        task_description : :obj:`str`, optional
-            训练任务详细描述。
-            若值为非空，
-            且参数 :obj:`algorithm_force_update` 为 :obj:`True` 时，
-            则Anylearn在自动提交本地算法变更时，
-            会将此值作为commit message同步至远端
-        image_name : :obj:`str`, optional
-            训练使用的Anylearn云环境中的镜像的名称。
-        quota_group_request : :obj:`dict`, optional
-            训练所需计算资源组中资源数量。
-            需指定 :obj:`key` 为 :obj:`name` , :obj:`value` 为 :obj:`资源组名称` ，若未指定则使用Anylearn后端的 :obj:`default` 资源组中的默认资源套餐。
-        num_nodes : :obj:`int`, optional
-            分布式训练需要的节点数。
-        nproc_per_node : :obj:`int`, optional
-            分布式训练每个节点运行的进程数。
-
-        Returns
-        -------
-        TrainTask
-            创建的训练任务对象
-        Algorithm
-            在快速训练过程中创建或获取的算法对象
-        Dataset
-            在快速训练过程中创建或获取的数据集对象
-        Project
-            创建的训练项目对象
+        :param start_col: The starting column.
+        :type start_col: `str`
+        :param end_col: The ending column.
+        :returns: The average value of each column.
+        :rtype: `pd.DataFrame`
         """
-
-        # Get the average of each column in the target dataset from the starting column to the ending column.
-        # :param start_col: The starting column.
-        # :param end_col: The ending column.
-        # :return: The average value of each column.
-
         # 获取数据每一列的均值
         if start_col == None:
             start_col = self.df_raw.columns[0]
