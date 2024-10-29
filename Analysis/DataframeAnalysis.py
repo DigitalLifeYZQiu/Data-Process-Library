@@ -7,11 +7,11 @@ import pandas as pd
 
 class DataframeAnalysis():
     def __init__(self, root_path,data_path):
-        '''
+        """
         Load data to project. Currently supporting '.csv', '.xlsx', and '.parquet'.
         :param root_path: The directory of all data
         :param data_path: The path of a specific dataset
-        '''
+        """
         self.root_path = root_path
         self.data_path = data_path
         if data_path.endswith('.csv'):
@@ -27,20 +27,20 @@ class DataframeAnalysis():
     
     #* 统计量
     def getShape(self):
-        '''
+        """
         Get the shape of target dataset.
         :return: The shape of target dataset.
-        '''
+        """
         # 获取数据形状：（序列长度，变量数）
         return self.df_raw.shape
     
     def getAverageColumn(self,start_col=None, end_col=None):
-        '''
+        """
         Get the average of each column in the target dataset from the starting column to the ending column.
         :param start_col: The starting column.
         :param end_col: The ending column.
         :return: The average value of each column.
-        '''
+        """
         # 获取数据每一列的均值
         if start_col==None:
             start_col = self.df_raw.columns[0]
@@ -55,12 +55,12 @@ class DataframeAnalysis():
 
     
     def getVarianceColumn(self, start_col=None, end_col=None):
-        '''
+        """
         Get the variance of each column in the target dataset from the starting column to the ending column.
         :param start_col: The starting column.
         :param end_col: The ending column.
         :return: The variance value of each column.
-        '''
+        """
         # 获取数据每一列的方差
         if start_col==None:
             start_col = self.df_raw.columns[0]
