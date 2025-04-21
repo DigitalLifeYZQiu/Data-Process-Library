@@ -4,28 +4,33 @@ import pyarrow.parquet as pq
 from arch.unitroot import ADF, PhillipsPerron, DFGLS, KPSS, ZivotAndrews, VarianceRatio
 from scipy.fftpack import fft, fftfreq
 import pandas as pd
+from typing import Optional
+# from typing import Dict, Tuple
 
 
 class DataframeAnalysis():
-    def __init__(self, root_path, data_path):
-
-
+    def __init__(self, root_path : Optional[str]=None, data_path : Optional[str]=None, dataFrame : Optional[pd.DataFrame]=None, skip: int = 0) -> None:
         # Load data to project. Currently supporting '.csv', '.xlsx', and '.parquet'.
         # :param root_path: The directory of all data
         # :param data_path: The path of a specific dataset
-
-        self.root_path = root_path
-        self.data_path = data_path
-        if data_path.endswith('.csv'):
-            df_raw = pd.read_csv(os.path.join(self.root_path, self.data_path))
-            self.df_raw = df_raw
-        elif data_path.endswith('.xlsx'):
-            df_raw = pd.read_excel(os.path.join(self.root_path, self.data_path))
-            self.df_raw = df_raw
-        elif data_path.endswith('.parquet'):
-            parquet_file = pq.ParquetFile(os.path.join(self.root_path, self.data_path))
-            df_raw = parquet_file.read().to_pandas()
-            self.df_raw = df_raw
+        
+        if root_path is not None and data_path is not None:
+            self.root_path = root_path
+            self.data_path = data_path
+            print(f"DataAnalysis loading data from: {root_path}/{data_path}")
+            if data_path.endswith('.csv'):
+                df_raw = pd.read_csv(os.path.join(self.root_path, self.data_path),skiprows=skip)
+                self.df_raw = df_raw
+            elif data_path.endswith('.xlsx'):
+                df_raw = pd.read_excel(os.path.join(self.root_path, self.data_path))
+                self.df_raw = df_raw
+            elif data_path.endswith('.parquet'):
+                parquet_file = pq.ParquetFile(os.path.join(self.root_path, self.data_path))
+                df_raw = parquet_file.read().to_pandas()
+                self.df_raw = df_raw
+        if dataFrame is not None:
+            print(f"DataAnalysis loading data from DataFrame with shape: {dataFrame.shape}")
+            self.df_raw = dataFrame
 
     # * 统计量
     def getShape(self):
@@ -37,7 +42,7 @@ class DataframeAnalysis():
         # 获取数据形状：（序列长度，变量数）
         return self.df_raw.shape
 
-    def getAverageColumn(self, start_col=None, end_col=None):
+    def getAverageColumn(self, start_col : str = None, end_col : str = None):
         """
         Get the average of each column in the target dataset from the starting column to the ending column.
 
@@ -431,7 +436,10 @@ class DataframeAnalysis():
         if end_col == None:
             end_col = self.df_raw.columns[-1]
         data_nan_time = self.df_raw[self.df_raw.loc[:, start_col:end_col].isnull().values == True].index.unique()
-        return data_nan_time
+        flag = False
+        if data_nan_time.values.size != 0:
+            flag=True
+        return data_nan_time, flag
 
     def getInterpolate(self, start_col=None, end_col=None, **kwargs):
         """
@@ -457,4 +465,101 @@ class DataframeAnalysis():
             new_df = self.df_raw.loc[:, start_col:end_col]
         self.df_raw.loc[:, start_col:end_col] = new_df
         return self.df_raw
+    
+    #* 离群点检测
+    def checkOutlierIQR(self, start_col=None, end_col=None, **kwargs):
+        """
+        Check the existence of outlier in the target dataset from the starting column to the ending column.
+        return true if outlier exists.
 
+        :param start_col: The starting column.
+        :type start_col: `str`
+        :param end_col: The ending column.
+        :type end_col: `str`
+        :param kwargs: The arguments of interpolate.
+        :returns: The existence of outlier under IQR method in data.
+        """
+        # 异常值替换函数(通过**kwargs传入interpolate函数的参数)
+        if start_col == None:
+            start_col = self.df_raw.columns[0]
+        if end_col == None:
+            end_col = self.df_raw.columns[-1]
+        new_df = self.df_raw.loc[:, start_col:end_col]
+        flag = False
+        outliers = []
+        for i in new_df.columns:
+            Q1 = new_df[i].quantile(0.25)
+            Q3 = new_df[i].quantile(0.75)
+            IQR = Q3 - Q1
+            outlier_i = new_df[i][(new_df[i] < Q1 - 1.5 * IQR) | (new_df[i] > Q3 + 1.5 * IQR)]
+            outliers.append(outlier_i)
+            if outlier_i.values.size != 0:
+                flag= True
+        return outliers, flag
+
+    def getOutlierIQR(self, start_col=None, end_col=None, **kwargs):
+        """
+        Get the outlier replace result of each column in the target dataset from the starting column to the ending column.
+
+        :param start_col: The starting column.
+        :type start_col: `str`
+        :param end_col: The ending column.
+        :type end_col: `str`
+        :param kwargs: Other arguments.
+        :returns: The outlier replacement of each column in the target dataset from the starting column to the ending column.
+        """
+        # 异常值替换函数(通过**kwargs传入interpolate函数的参数)
+        if start_col == None:
+            start_col = self.df_raw.columns[0]
+        if end_col == None:
+            end_col = self.df_raw.columns[-1]
+        new_df = self.df_raw.loc[:, start_col:end_col]
+        for i in new_df.columns:
+            Q1 = new_df[i].quantile(0.25)
+            Q3 = new_df[i].quantile(0.75)
+            IQR = Q3 - Q1
+            new_df[i] = new_df[i].mask((new_df[i] < Q1 - 1.5 * IQR), Q1 - 1.5 * IQR).mask((new_df[i] > Q3 + 1.5 * IQR), Q3 + 1.5 * IQR)
+        self.df_raw.loc[:, start_col:end_col] = new_df
+        return self.df_raw
+
+    def checkDateContinuity(self, date_col, **kwargs):
+        """
+        Check the date continuity of each column in the target dataset from the starting column to the ending column.
+        return true when missing dates found.
+
+        :param date_col: The column of timestamp.
+        :type date_col: `str`
+        :param kwargs: Other arguments
+        :returns: The interpolate result of each column in the target dataset from the starting column to the ending column.
+        """
+        flag = False
+        expected_range = pd.date_range(start = self.df_raw[date_col].min(), end = self.df_raw[date_col].max())
+        missing_dates = expected_range.difference(self.df_raw[date_col])
+        if missing_dates.values.size != 0:
+            flag= True
+        return missing_dates, flag
+    
+    def getMovingAverage(self, start_col=None, end_col=None, window_size=3, **kwargs):
+        """
+        Get the moving average smoothing result of each column in the target dataset from the starting column to the ending column.
+
+        :param start_col: The starting column.
+        :type start_col: `str`
+        :param end_col: The ending column.
+        :type end_col: `str`
+        :param window_size: The size of moving average smoothing.
+        :type window_size: `int`
+        :param kwargs: Other arguments.
+        :returns: The moving average of each column in the target dataset from the starting column to the ending column.
+        """
+        # 异常值替换函数(通过**kwargs传入interpolate函数的参数)
+        if start_col == None:
+            start_col = self.df_raw.columns[0]
+        if end_col == None:
+            end_col = self.df_raw.columns[-1]
+        new_df = self.df_raw.loc[:, start_col:end_col]
+        for i in new_df.columns:
+            new_df[i] = new_df[i].rolling(window=window_size).mean()
+            new_df[i][0:window_size] = self.df_raw[i][0:window_size]
+        self.df_raw.loc[:, start_col:end_col] = new_df
+        return self.df_raw
