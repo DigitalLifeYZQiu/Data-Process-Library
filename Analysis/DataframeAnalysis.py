@@ -4,6 +4,7 @@ import pyarrow.parquet as pq
 from arch.unitroot import ADF, PhillipsPerron, DFGLS, KPSS, ZivotAndrews, VarianceRatio
 from scipy.fftpack import fft, fftfreq
 import pandas as pd
+import plotly.graph_objects as go
 from typing import Optional
 # from typing import Dict, Tuple
 
@@ -64,6 +65,28 @@ class DataframeAnalysis():
         average_df['feature'] = average.index
         average_df['average'] = average.values
         return average_df
+    
+    def plot_column_plotly(self, columns : list = None, start_point : int = 0, length : int = 96):
+        '''
+        Descriptions:
+            Plot function for target column using Plotly.
+        Inputs:
+            choice of target column -> string format
+        Outputs:
+            Plotly image format
+        '''
+        if columns == None:
+            columns = [self.df_raw.columns[-1]]
+        fig = go.Figure()
+        for col in columns:
+            df = self.df_raw.loc[start_point : start_point + length, col]
+            df_choice = np.array(df)
+            length = len(df_choice)
+        
+            fig.add_trace(go.Scatter(x=np.arange(length), y=df_choice, mode='lines', name=f"Feature: {col}"))
+        fig.update_layout(title=f'Dataset:{self.root_path}/{self.data_path}', xaxis_title='Timepoint',
+                          yaxis_title=f'Feature value: {columns}')
+        return fig
 
     def getVarianceColumn(self, start_col=None, end_col=None):
         """
