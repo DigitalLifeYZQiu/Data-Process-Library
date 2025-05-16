@@ -558,7 +558,8 @@ class DataframeAnalysis():
         # 确保时间戳列为 datetime64[ns] 类型
         # if not pd.api.types.is_datetime64_any_dtype(self.df_raw[date_col]):
         #     self.df_raw[date_col] = pd.to_datetime(self.df_raw[date_col])
-        self.df_raw[date_col] = pd.to_datetime(self.df_raw[date_col], format='%Y%m%d%H%M')
+        # self.df_raw[date_col] = pd.to_datetime(self.df_raw[date_col], format='%Y%m%d%H%M')
+        self.df_raw[date_col] = pd.to_datetime(self.df_raw[date_col])
             
         # 去重并排序时间戳
         timestamps = self.df_raw[date_col].drop_duplicates().sort_values()
