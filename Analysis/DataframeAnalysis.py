@@ -545,7 +545,7 @@ class DataframeAnalysis():
         self.df_raw.loc[:, start_col:end_col] = new_df
         return self.df_raw
 
-    def checkDateContinuity(self, date_col, **kwargs):
+    def checkDateContinuity(self, date_col, freq=None, **kwargs):
         """
         Check the date continuity of each column in the target dataset from the starting column to the ending column.
         return true when missing dates found.
@@ -555,12 +555,30 @@ class DataframeAnalysis():
         :param kwargs: Other arguments
         :returns: The interpolate result of each column in the target dataset from the starting column to the ending column.
         """
-        flag = False
-        expected_range = pd.date_range(start = self.df_raw[date_col].min(), end = self.df_raw[date_col].max())
-        missing_dates = expected_range.difference(self.df_raw[date_col])
-        if missing_dates.values.size != 0:
-            flag= True
-        return missing_dates, flag
+        # 确保时间戳列为 datetime64[ns] 类型
+        # if not pd.api.types.is_datetime64_any_dtype(self.df_raw[date_col]):
+        #     self.df_raw[date_col] = pd.to_datetime(self.df_raw[date_col])
+        self.df_raw[date_col] = pd.to_datetime(self.df_raw[date_col], format='%Y%m%d%H%M')
+            
+        # 去重并排序时间戳
+        timestamps = self.df_raw[date_col].drop_duplicates().sort_values()
+        
+        # 检查是否有足够的时间戳用于连续性判断
+        if timestamps.size < 2:
+            return pd.DatetimeIndex([]), True
+        
+        # 未给定时序频率时默认为 15 秒级采样
+        if freq is None:
+            freq='15min'
+        
+        # 生成理论上的freq 频率时间戳序列
+        start_time = timestamps.min()
+        end_time = timestamps.max()
+        expected_range = pd.date_range(start=start_time, end=end_time, freq=freq)
+        
+        # 找出缺失的时间戳
+        missing_timestamps = expected_range.difference(timestamps)
+        return missing_timestamps, len(missing_timestamps)==0, timestamps, expected_range
     
     def getMovingAverage(self, start_col=None, end_col=None, window_size=3, **kwargs):
         """
