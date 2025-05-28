@@ -14,24 +14,25 @@ class DataframeAnalysis():
         # Load data to project. Currently supporting '.csv', '.xlsx', and '.parquet'.
         # :param root_path: The directory of all data
         # :param data_path: The path of a specific dataset
-        
-        if root_path is not None and data_path is not None:
-            self.root_path = root_path
-            self.data_path = data_path
-            print(f"DataAnalysis loading data from: {root_path}/{data_path}")
-            if data_path.endswith('.csv'):
-                df_raw = pd.read_csv(os.path.join(self.root_path, self.data_path),skiprows=skip)
-                self.df_raw = df_raw
-            elif data_path.endswith('.xlsx'):
-                df_raw = pd.read_excel(os.path.join(self.root_path, self.data_path))
-                self.df_raw = df_raw
-            elif data_path.endswith('.parquet'):
-                parquet_file = pq.ParquetFile(os.path.join(self.root_path, self.data_path))
-                df_raw = parquet_file.read().to_pandas()
-                self.df_raw = df_raw
+        self.root_path = root_path
+        self.data_path = data_path
         if dataFrame is not None:
             print(f"DataAnalysis loading data from DataFrame with shape: {dataFrame.shape}")
             self.df_raw = dataFrame
+        else:
+            if root_path is not None and data_path is not None:
+                print(f"DataAnalysis loading data from: {root_path}/{data_path}")
+                if data_path.endswith('.csv'):
+                    df_raw = pd.read_csv(os.path.join(self.root_path, self.data_path),skiprows=skip)
+                    self.df_raw = df_raw
+                elif data_path.endswith('.xlsx'):
+                    df_raw = pd.read_excel(os.path.join(self.root_path, self.data_path))
+                    self.df_raw = df_raw
+                elif data_path.endswith('.parquet'):
+                    parquet_file = pq.ParquetFile(os.path.join(self.root_path, self.data_path))
+                    df_raw = parquet_file.read().to_pandas()
+                    self.df_raw = df_raw
+        
 
     # * 统计量
     def getShape(self):
@@ -66,7 +67,7 @@ class DataframeAnalysis():
         average_df['average'] = average.values
         return average_df
     
-    def plot_column_plotly(self, columns : list = None, start_point : int = 0, length : int = 96):
+    def plot_column_plotly(self, columns : list = None, start_point : int = None, length : int = None):
         '''
         Descriptions:
             Plot function for target column using Plotly.
@@ -79,7 +80,10 @@ class DataframeAnalysis():
             columns = [self.df_raw.columns[-1]]
         fig = go.Figure()
         for col in columns:
-            df = self.df_raw.loc[start_point : start_point + length, col]
+            if start_point is not None and length is not None:
+                df = self.df_raw.loc[start_point : start_point + length, col]
+            else:
+                df = self.df_raw.loc[:, col]
             df_choice = np.array(df)
             length = len(df_choice)
         
@@ -559,7 +563,7 @@ class DataframeAnalysis():
         # if not pd.api.types.is_datetime64_any_dtype(self.df_raw[date_col]):
         #     self.df_raw[date_col] = pd.to_datetime(self.df_raw[date_col])
         # self.df_raw[date_col] = pd.to_datetime(self.df_raw[date_col], format='%Y%m%d%H%M')
-        self.df_raw[date_col] = pd.to_datetime(self.df_raw[date_col])
+        self.df_raw[date_col] = pd.to_datetime(self.df_raw[date_col].astype(str))
             
         # 去重并排序时间戳
         timestamps = self.df_raw[date_col].drop_duplicates().sort_values()
